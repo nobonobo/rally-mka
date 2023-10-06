@@ -1,0 +1,3 @@
+[submodule "lacking-js"]
+	path = lacking-js
+	url = https://github.com/mokiat/lacking-js.git

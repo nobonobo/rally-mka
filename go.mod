@@ -1,6 +1,8 @@
 module github.com/mokiat/rally-mka
 
-go 1.20
+go 1.21
+
+toolchain go1.21.1
 
 require (
 	github.com/mokiat/gblob v0.2.1
@@ -32,3 +34,5 @@ require (
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
+
+replace github.com/mokiat/lacking-js => ./lacking-js

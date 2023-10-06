@@ -11,9 +11,10 @@ import (
 	"github.com/mokiat/lacking/game/graphics"
 	"github.com/mokiat/lacking/game/physics"
 	"github.com/mokiat/lacking/game/physics/collision"
-	"github.com/mokiat/lacking/game/preset"
 	"github.com/mokiat/lacking/ui"
 	"github.com/mokiat/rally-mka/internal/game/data"
+
+	"github.com/mokiat/rally-mka/preset"
 )
 
 const (

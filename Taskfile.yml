@@ -1,7 +1,6 @@
-version: '3'
+version: "3"
 
 tasks:
-
   licenses:
     cmds:
       - rm ./resources/licenses.txt
@@ -36,7 +35,7 @@ tasks:
       GOOS: js
       GOARCH: wasm
     cmds:
-      - go build -o './assets/web/main.wasm' './cmd/rallymka'
+      - go build -tags ffb -o './assets/web/main.wasm' './cmd/rallymka'
 
   web:
     cmds:

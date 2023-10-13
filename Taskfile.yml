@@ -39,7 +39,7 @@ tasks:
 
   web:
     cmds:
-      - go run 'github.com/mokiat/httpserv@v1.0.0' -dir './assets' -host '127.0.0.1'
+      - go run 'github.com/mokiat/httpserv@v1.0.0' -dir './assets' -host '0.0.0.0'
 
   profile-cpu:
     cmds:

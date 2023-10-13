@@ -1,6 +1,9 @@
 package preset
 
 import (
+	"log"
+	"math"
+
 	"github.com/mokiat/gomath/dprec"
 	"github.com/mokiat/lacking/app"
 	"github.com/mokiat/lacking/game/ecs"
@@ -29,6 +32,8 @@ type CarSystem struct {
 	ecsScene        *ecs.Scene
 	gfxScene        *graphics.Scene
 	gamepadProvider GamepadProvider
+	ffbTick         float64
+	ffbForce        float64
 
 	keysOfInterest map[ui.KeyCode]struct{}
 	keyStates      map[ui.KeyCode]bool
@@ -265,14 +270,17 @@ func (s *CarSystem) updateGamepad(elapsedSeconds float64, entity *ecs.Entity) {
 	carComp.SteeringAmount = leftStickX // * leftStickX * leftStickX
 	carComp.Acceleration = gamepad.RightTrigger()
 	carComp.Deceleration = gamepad.LeftTrigger()
-	if gamepad.ActionLeftButton() {
+	if gamepad.BackButton() {
 		carComp.Gear = CarGearReverse
 	}
-	if gamepad.ActionDownButton() {
+	if gamepad.ForwardButton() {
 		carComp.Gear = CarGearForward
 	}
 	carComp.Recover = gamepad.ActionUpButton()
+	gamepad.Pulse(s.ffbForce, 0)
 }
+
+var cnt = 0
 
 func (s *CarSystem) updateCar(elapsedSeconds float64, entity *ecs.Entity) {
 	// TODO: Run this inside physics loop for smooth operation.
@@ -309,8 +317,8 @@ func (s *CarSystem) updateCar(elapsedSeconds float64, entity *ecs.Entity) {
 		velocity.Y = 2.0
 		chassisBody.SetVelocity(velocity)
 	}
-
-	for _, axis := range car.Axes() {
+	cnt++
+	for idx, axis := range car.Axes() {
 		// TODO: Use Ackermann steering. Needs an additional steering offset (intersection line) parameter.
 		steeringAngle := -axis.maxSteeringAngle * dprec.Angle(carComp.SteeringAmount)
 		steeringQuat := dprec.RotationQuat(steeringAngle, dprec.BasisYVec3())
@@ -364,5 +372,19 @@ func (s *CarSystem) updateCar(elapsedSeconds float64, entity *ecs.Entity) {
 				dprec.Vec3Prod(rightWheelBody.Orientation().OrientationX(), rightWheelCorrection),
 			))
 		}
+		var slipAngle dprec.Angle
+		bodyOZ := chassisBody.Orientation().OrientationZ()
+		bodyVel := dprec.UnitVec3(chassisBody.Velocity())
+		if idx == 0 { // front
+			slipAngle = -axis.maxSteeringAngle * dprec.Acos(dprec.Vec3Dot(bodyVel, bodyOZ)) / dprec.Angle(dprec.Pi)
+		}
+		if cnt%100 == 0 {
+			if idx == 0 {
+				log.Printf("boz:%#v, bv:%#v angle:%#v/%#v", bodyOZ, bodyVel, slipAngle, steeringAngle)
+			}
+		}
 	}
+	const freq = 3.0
+	s.ffbTick += elapsedSeconds
+	s.ffbForce = 0.01 * math.Sin(2*math.Pi*freq*float64(s.ffbTick))
 }

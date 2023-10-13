@@ -19,6 +19,8 @@ import (
 	"github.com/mokiat/rally-mka/internal/ui/model"
 	"github.com/mokiat/rally-mka/internal/ui/widget"
 	"github.com/x448/float16"
+
+	jsapp "github.com/mokiat/lacking-js/app"
 )
 
 var HomeScreen = mvc.Wrap(co.Define(&homeScreenComponent{}))
@@ -508,6 +510,7 @@ func (c *homeScreenComponent) onMouseClicked() {
 }
 
 func (c *homeScreenComponent) onGamepadClicked() {
+	go jsapp.GamepadConnect()
 	c.homeModel.SetController(data.ControllerGamepad)
 }
 

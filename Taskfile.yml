@@ -35,7 +35,7 @@ tasks:
       GOOS: js
       GOARCH: wasm
     cmds:
-      - go build -tags dfp -o './assets/web/main.wasm' './cmd/rallymka'
+      - go build -tags diy -o './assets/web/main.wasm' './cmd/rallymka'
 
   web:
     cmds:

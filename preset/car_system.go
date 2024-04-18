@@ -1,7 +1,6 @@
 package preset
 
 import (
-	"log"
 	"math"
 
 	"github.com/mokiat/gomath/dprec"
@@ -270,6 +269,7 @@ func (s *CarSystem) updateGamepad(elapsedSeconds float64, entity *ecs.Entity) {
 	carComp.SteeringAmount = leftStickX // * leftStickX * leftStickX
 	carComp.Acceleration = gamepad.RightTrigger()
 	carComp.Deceleration = gamepad.LeftTrigger()
+	carComp.SideBrake = gamepad.LeftStickY()
 	if gamepad.BackButton() {
 		carComp.Gear = CarGearReverse
 	}
@@ -372,19 +372,53 @@ func (s *CarSystem) updateCar(elapsedSeconds float64, entity *ecs.Entity) {
 				dprec.Vec3Prod(rightWheelBody.Orientation().OrientationX(), rightWheelCorrection),
 			))
 		}
-		var slipAngle dprec.Angle
-		bodyOZ := chassisBody.Orientation().OrientationZ()
-		bodyVel := dprec.UnitVec3(chassisBody.Velocity())
-		if idx == 0 { // front
-			slipAngle = -axis.maxSteeringAngle * dprec.Acos(dprec.Vec3Dot(bodyVel, bodyOZ)) / dprec.Angle(dprec.Pi)
+		// Side Braking
+		if idx == 1 {
+			if carComp.SideBrake > 0.0 {
+				leftWheelVelocity := dprec.Vec3Dot(
+					leftWheelBody.AngularVelocity(),
+					leftWheelBody.Orientation().OrientationX(),
+				)
+				leftWheelCorrection := -dprec.Min(axis.maxBraking*carComp.SideBrake*elapsedSeconds, leftWheelVelocity)
+				leftWheelBody.SetAngularVelocity(dprec.Vec3Sum(
+					leftWheelBody.AngularVelocity(),
+					dprec.Vec3Prod(leftWheelBody.Orientation().OrientationX(), leftWheelCorrection),
+				))
+
+				rightWheelVelocity := dprec.Vec3Dot(
+					rightWheelBody.AngularVelocity(),
+					rightWheelBody.Orientation().OrientationX(),
+				)
+				rightWheelCorrection := -dprec.Min(axis.maxBraking*carComp.SideBrake*elapsedSeconds, rightWheelVelocity)
+				rightWheelBody.SetAngularVelocity(dprec.Vec3Sum(
+					rightWheelBody.AngularVelocity(),
+					dprec.Vec3Prod(rightWheelBody.Orientation().OrientationX(), rightWheelCorrection),
+				))
+			}
 		}
-		if cnt%100 == 0 {
-			if idx == 0 {
-				log.Printf("boz:%#v, bv:%#v angle:%#v/%#v", bodyOZ, bodyVel, slipAngle, steeringAngle)
+		if idx == 0 {
+			bodyOX := chassisBody.Orientation().OrientationX()
+			leftOX := leftWheelBody.Orientation().OrientationX()
+			stes := dprec.Angle(dprec.Sign(dprec.Vec3Cross(bodyOX, leftOX).Y))
+			tireAngle := stes * dprec.Acos(dprec.Vec3Dot(leftOX, bodyOX))
+			bodyOZ := chassisBody.Orientation().OrientationZ()
+			bodyVel := dprec.UnitVec3(chassisBody.Velocity())
+			slas := dprec.Angle(dprec.Sign(dprec.Vec3Cross(bodyOZ, bodyVel).Y))
+			slipAngle := slas * dprec.Acos(dprec.Vec3Dot(bodyVel, bodyOZ))
+			vel := chassisBody.Velocity().Length()
+			velrate := vel / 22
+			s.ffbForce = 0
+			if deltaVelocity > 0 {
+				s.ffbForce += velrate * velrate * float64(slipAngle-0.3*tireAngle)
+			}
+			freq := vel * 2
+			s.ffbTick += elapsedSeconds
+			s.ffbForce += 0.05 * velrate * velrate * math.Sin(2*math.Pi*freq*float64(s.ffbTick))
+			if cnt%100 == 0 {
+				//log.Printf("vel:%#v", chassisBody.Velocity().Length())
 			}
 		}
 	}
-	const freq = 3.0
-	s.ffbTick += elapsedSeconds
-	s.ffbForce = 0.01 * math.Sin(2*math.Pi*freq*float64(s.ffbTick))
+	const maxForce = 0.15
+	s.ffbForce = dprec.Clamp(s.ffbForce, -maxForce, maxForce)
 }

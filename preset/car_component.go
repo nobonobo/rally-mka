@@ -28,6 +28,7 @@ type CarComponent struct {
 	SteeringAmount float64
 	Acceleration   float64
 	Deceleration   float64
+	SideBrake      float64
 	Recover        bool
 	LightsOn       bool
 }

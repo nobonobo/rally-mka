@@ -183,7 +183,7 @@ func (s *CarSystem) updateKeyboard(elapsedSeconds float64, entity *ecs.Entity) {
 	if s.keyStates[keyboardComp.ShiftUpKey] {
 		carComp.Gear = CarGearForward
 	}
-	carComp.Recover = s.keyStates[keyboardComp.RecoverKey]
+	//carComp.Recover = s.keyStates[keyboardComp.RecoverKey]
 }
 
 func (s *CarSystem) updateMouse(elapsedSeconds float64, entity *ecs.Entity) {
@@ -276,7 +276,7 @@ func (s *CarSystem) updateGamepad(elapsedSeconds float64, entity *ecs.Entity) {
 	if gamepad.ForwardButton() {
 		carComp.Gear = CarGearForward
 	}
-	carComp.Recover = gamepad.ActionUpButton()
+	//carComp.Recover = gamepad.ActionUpButton()
 	gamepad.Pulse(s.ffbForce, 0)
 }
 
@@ -305,7 +305,7 @@ func (s *CarSystem) updateCar(elapsedSeconds float64, entity *ecs.Entity) {
 		light.SetActive(carComp.Deceleration > 0.1)
 	}
 
-	if carComp.Recover {
+	if false && carComp.Recover {
 		rotationVector := dprec.Vec3Cross(
 			chassisBody.Orientation().OrientationY(),
 			dprec.BasisYVec3(),
@@ -397,6 +397,11 @@ func (s *CarSystem) updateCar(elapsedSeconds float64, entity *ecs.Entity) {
 			}
 		}
 		if idx == 0 {
+			/*
+				left := collision.NewLine(leftWheelBody.Position(), dprec.Vec3Sum(leftWheelBody.Position(), dprec.BasisYVec3()))
+				leftIntersection, ok := collision.LineWithSurfaceIntersectionPoint(left, position, dprec.BasisYVec3())
+				right := collision.NewLine(rightWheelBody.Position(), dprec.Vec3Sum(leftWheelBody.Position(), dprec.BasisYVec3()))
+			*/
 			bodyOX := chassisBody.Orientation().OrientationX()
 			leftOX := leftWheelBody.Orientation().OrientationX()
 			stes := dprec.Angle(dprec.Sign(dprec.Vec3Cross(bodyOX, leftOX).Y))
@@ -413,9 +418,18 @@ func (s *CarSystem) updateCar(elapsedSeconds float64, entity *ecs.Entity) {
 			}
 			freq := vel * 2
 			s.ffbTick += elapsedSeconds
-			s.ffbForce += 0.05 * velrate * velrate * math.Sin(2*math.Pi*freq*float64(s.ffbTick))
-			if cnt%100 == 0 {
+			s.ffbForce += dprec.Clamp(
+				0.05*velrate*velrate*math.Sin(2*math.Pi*freq*float64(s.ffbTick)),
+				-0.05, 0.05,
+			)
+			if cnt%10 == 0 {
 				//log.Printf("vel:%#v", chassisBody.Velocity().Length())
+				/*
+					log.Printf("Sus:%v,%v",
+						axis.LeftHub().Body().Orientation().OrientationZ(),
+						axis.RightHub().Body().Orientation().OrientationZ(),
+					)
+				*/
 			}
 		}
 	}

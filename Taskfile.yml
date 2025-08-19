@@ -17,7 +17,7 @@ tasks:
       - cp 'resources/web/main.css' 'assets/web/main.css'
       - cp 'resources/web/main.js' 'assets/web/main.js'
       - cp 'resources/web/index.html' 'assets/index.html'
-      - cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" 'assets/web'
+      - cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" 'assets/web'
 
   assets:
     deps: [pack, webpack]

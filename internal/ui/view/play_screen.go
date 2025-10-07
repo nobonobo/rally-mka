@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/mokiat/gog/opt"
@@ -17,6 +18,7 @@ import (
 	"github.com/mokiat/rally-mka/internal/ui/global"
 	"github.com/mokiat/rally-mka/internal/ui/model"
 	"github.com/mokiat/rally-mka/internal/ui/widget"
+	"github.com/mokiat/rally-mka/preset"
 )
 
 var PlayScreen = co.Define(&playScreenComponent{})
@@ -93,6 +95,13 @@ func (c *playScreenComponent) OnMouseEvent(element *ui.Element, event ui.MouseEv
 
 func (c *playScreenComponent) OnKeyboardEvent(element *ui.Element, event ui.KeyboardEvent) bool {
 	switch event.Code {
+	case ui.KeyCodeR:
+		if event.Type == ui.KeyboardEventTypeKeyDown {
+			log.Println("KeyDown: R key")
+			mvc.Dispatch(c.Scope(), action.ChangeView{
+				ViewName: model.ViewNameHome,
+			})
+		}
 	case ui.KeyCodeEscape:
 		if event.Type == ui.KeyboardEventTypeKeyUp {
 			c.controller.Pause()
@@ -120,6 +129,7 @@ func (c *playScreenComponent) OnKeyboardEvent(element *ui.Element, event ui.Keyb
 	default:
 		return c.controller.OnKeyboardEvent(event)
 	}
+	return false
 }
 
 func (c *playScreenComponent) Render() co.Instance {
@@ -200,4 +210,8 @@ func (c *playScreenComponent) onGoHome() {
 
 func (c *playScreenComponent) onExit() {
 	co.Window(c.Scope()).Close()
+}
+
+func (c *playScreenComponent) GetVehicleDefinition() *preset.CarDefinition {
+	return c.controller.GetVehicleDefinition()
 }

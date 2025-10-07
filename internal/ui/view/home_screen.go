@@ -46,6 +46,7 @@ type homeScreenComponent struct {
 }
 
 func (c *homeScreenComponent) OnCreate() {
+	log.Info("HomeScreen OnCreate")
 	globalContext := co.TypedValue[global.Context](c.Scope())
 
 	data := co.GetData[HomeScreenData](c.Properties())
@@ -66,6 +67,15 @@ func (c *homeScreenComponent) OnCreate() {
 		c.onDayClicked()
 	}
 	c.engine.SetActiveScene(c.scene.Scene)
+	go func() {
+		obj := jsapp.GetGamepad()
+		log.Info("Gamepad: %v", obj)
+		if !obj.IsNull() {
+			c.onPlayClicked()
+			c.onGamepadClicked()
+			c.onStartClicked()
+		}
+	}()
 }
 
 func (c *homeScreenComponent) OnDelete() {
@@ -75,7 +85,9 @@ func (c *homeScreenComponent) OnDelete() {
 func (c *homeScreenComponent) Render() co.Instance {
 	controller := c.homeModel.Controller()
 	environment := c.homeModel.Environment()
-
+	if c.homeModel.Controller() != data.ControllerGamepad {
+		c.onGamepadClicked()
+	}
 	return co.New(std.Element, func() {
 		co.WithData(std.ElementData{
 			Layout: layout.Anchor(),

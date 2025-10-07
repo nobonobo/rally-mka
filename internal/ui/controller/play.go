@@ -19,7 +19,7 @@ import (
 
 const (
 	anchorDistance = 6.0
-	cameraDistance = 10.0
+	cameraDistance = 5.0
 	pitchAngle     = 20.0
 )
 
@@ -53,6 +53,10 @@ type PlayController struct {
 	vehicle           *preset.Car
 }
 
+func (c *PlayController) GetVehicleDefinition() *preset.CarDefinition {
+	return c.vehicleDefinition
+}
+
 func (c *PlayController) Start(environment data.Environment, controller data.Controller) {
 	physics.ImpulseDriftAdjustmentRatio = 0.06 // FIXME: Use default once multi-point collisions are fixed
 
@@ -72,7 +76,7 @@ func (c *PlayController) Start(environment data.Environment, controller data.Con
 	c.followCameraSystem = preset.NewFollowCameraSystem(c.ecsScene, c.window)
 	c.followCameraSystem.UseDefaults()
 
-	c.carSystem = preset.NewCarSystem(c.ecsScene, c.gfxScene, c.window)
+	c.carSystem = preset.NewCarSystem(c.ecsScene, c.gfxScene, c.window, c.vehicleDefinition)
 
 	var sunLight *graphics.DirectionalLight
 	switch environment {
@@ -275,7 +279,7 @@ func (c *PlayController) createVehicleDefinition() *preset.CarDefinition {
 	chassisBodyDef := c.physicsScene.Engine().CreateBodyDefinition(physics.BodyDefinitionInfo{
 		Mass:                   260,
 		MomentOfInertia:        physics.SymmetricMomentOfInertia(208),
-		DragFactor:             0.0,
+		DragFactor:             0.4,
 		AngularDragFactor:      0.0,
 		RestitutionCoefficient: 0.0,
 		CollisionGroup:         collisionGroup,

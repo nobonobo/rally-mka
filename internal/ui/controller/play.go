@@ -2,6 +2,7 @@ package controller
 
 import (
 	"runtime"
+	"time"
 
 	"github.com/mokiat/gomath/dprec"
 	"github.com/mokiat/gomath/sprec"
@@ -217,6 +218,13 @@ func (c *PlayController) Stop() {
 	c.preUpdateSubscription.Delete()
 	c.postUpdateSubscription.Delete()
 	c.scene.Delete()
+}
+
+func (c *PlayController) ElapsedTime() time.Duration {
+	return c.carSystem.ElapsedTime()
+}
+func (c *PlayController) LapTimes() []time.Duration {
+	return c.carSystem.LapTimes()
 }
 
 func (c *PlayController) Pause() {

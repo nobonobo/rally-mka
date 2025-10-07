@@ -2,12 +2,14 @@ package preset
 
 import (
 	"math"
+	"time"
 
 	"github.com/mokiat/gomath/dprec"
 	"github.com/mokiat/lacking/app"
 	"github.com/mokiat/lacking/game/ecs"
 	"github.com/mokiat/lacking/game/graphics"
 	"github.com/mokiat/lacking/game/physics/collision"
+	"github.com/mokiat/lacking/log"
 	"github.com/mokiat/lacking/ui"
 )
 
@@ -28,6 +30,21 @@ func NewCarSystem(ecsScene *ecs.Scene, gfxScene *graphics.Scene, gamepadProvider
 		forceR:          MovingAverage(3),
 		susL:            MovingAverage(6),
 		susR:            MovingAverage(6),
+		elapsedTime:     0,
+		splitLines: [][4]dprec.Vec3{
+			{
+				dprec.NewVec3(7.678688844606005, 5.3376550994875842, 3.889746297714098),
+				dprec.NewVec3(-7.638771842437261, 5.3156348841287753, 4.026980239168764),
+				dprec.NewVec3(-7.638771842437261, -5.3156348841287753, 4.026980239168764),
+				dprec.NewVec3(7.678688844606005, -5.3376550994875842, 3.889746297714098),
+			},
+			{
+				dprec.NewVec3(11.930501270735551, 5.1859254297959396, -98.31307443752078),
+				dprec.NewVec3(28.58415797949729, 5.20167072236512149, -79.5259868068588),
+				dprec.NewVec3(28.58415797949729, -5.20167072236512149, -79.5259868068588),
+				dprec.NewVec3(11.930501270735551, -5.1859254297959396, -98.31307443752078),
+			},
+		},
 
 		keysOfInterest: make(map[app.KeyCode]struct{}),
 		keyStates:      make(map[app.KeyCode]bool),
@@ -53,6 +70,13 @@ type CarSystem struct {
 	susL            func(float64) float64
 	susR            func(float64) float64
 	lastSteerAngle  dprec.Angle
+	splitIndex      int
+	splitLines      [][4]dprec.Vec3
+	lastStart       bool
+
+	lapTimerRunning bool
+	elapsedTime     time.Duration
+	lapTimes        [4]time.Duration
 
 	keysOfInterest map[ui.KeyCode]struct{}
 	keyStates      map[ui.KeyCode]bool
@@ -100,7 +124,18 @@ func (s *CarSystem) OnKeyboardEvent(event ui.KeyboardEvent) bool {
 	return true
 }
 
+func (s *CarSystem) ElapsedTime() time.Duration {
+	return s.elapsedTime
+}
+
+func (s *CarSystem) LapTimes() []time.Duration {
+	return s.lapTimes[:]
+}
+
 func (s *CarSystem) Update(elapsedSeconds float64) {
+	if s.lapTimerRunning {
+		s.elapsedTime += time.Duration(elapsedSeconds * float64(time.Second))
+	}
 	s.mouseOfInterest = false
 
 	result := s.ecsScene.Find(ecs.Having(CarComponentID))
@@ -484,8 +519,29 @@ func (s *CarSystem) updateCar(elapsedSeconds float64, entity *ecs.Entity) {
 				0.1*(s.rpm/maxRPM)*math.Sin(2*math.Pi*freq*float64(s.ffbTick)),
 				-0.1, 0.1,
 			)
-			if cnt%10 == 0 {
-				//log.Info("f: %v, s: %v, t: %v", load, latForce, torque)
+			start := IntersectsQuad(
+				chassisBody.Position(),
+				dprec.Vec3Sum(chassisBody.Position(), dprec.Vec3Prod(chassisBody.Orientation().OrientationZ(), 2)),
+				s.splitLines[s.splitIndex],
+			)
+			defer func() {
+				s.lastStart = start
+			}()
+			if start && !s.lastStart {
+				log.Info("Lapped!")
+				if s.splitIndex == 0 {
+					if !s.lapTimerRunning {
+						s.lapTimerRunning = true
+					} else {
+						copy(s.lapTimes[1:], s.lapTimes[0:])
+						s.lapTimes[0] = s.elapsedTime
+					}
+					s.elapsedTime = 0
+				}
+				s.splitIndex = (s.splitIndex + 1) % len(s.splitLines)
+			}
+			if cnt%60 == 0 {
+				log.Info("v: %v: %v", chassisBody.Position(), start)
 			}
 		}
 	}
@@ -550,4 +606,61 @@ func CalculateSelfAligningTorque(lateralForce float64) float64 {
 	trailSum := mechanicalTrail + pneumaticTrail
 	torque := trailSum * math.Cos(casterAngle) * lateralForce
 	return torque
+}
+
+// 三角形内判定（バリセンテリック法）
+func pointInTriangle(p, a, b, c dprec.Vec3) bool {
+	v0 := dprec.Vec3Diff(c, a)
+	v1 := dprec.Vec3Diff(b, a)
+	v2 := dprec.Vec3Diff(p, a)
+
+	dot00 := dprec.Vec3Dot(v0, v0)
+	dot01 := dprec.Vec3Dot(v0, v1)
+	dot02 := dprec.Vec3Dot(v0, v2)
+	dot11 := dprec.Vec3Dot(v1, v1)
+	dot12 := dprec.Vec3Dot(v1, v2)
+
+	invDenom := 1 / (dot00*dot11 - dot01*dot01)
+	u := (dot11*dot02 - dot01*dot12) * invDenom
+	v := (dot00*dot12 - dot01*dot02) * invDenom
+
+	return (u >= 0) && (v >= 0) && (u+v <= 1)
+}
+
+// 線分・四角形貫通判定
+func IntersectsQuad(start, end dprec.Vec3, quad [4]dprec.Vec3) bool {
+	// 四角形を三角形2つに分割
+	tri1 := [3]dprec.Vec3{quad[0], quad[1], quad[2]}
+	tri2 := [3]dprec.Vec3{quad[0], quad[2], quad[3]}
+
+	segDir := dprec.Vec3Diff(end, start)
+
+	// 三角形1の平面法線を計算
+	edge1 := dprec.Vec3Diff(tri1[1], tri1[0])
+	edge2 := dprec.Vec3Diff(tri1[2], tri1[0])
+	normal := dprec.Vec3Cross(edge1, edge2)
+
+	d := -dprec.Vec3Dot(normal, tri1[0])
+	denom := dprec.Vec3Dot(normal, segDir)
+
+	// 平面と並行なら交差なし
+	if dprec.Abs(denom) < 1e-10 {
+		return false
+	}
+
+	t := -(dprec.Vec3Dot(normal, start) + d) / denom
+	// tが0～1の範囲なら線分上に交点あり
+	if t < 0 || t > 1 {
+		return false
+	}
+
+	intersection := dprec.Vec3Sum(start, dprec.Vec3Prod(segDir, t))
+
+	// 交差点がどちらかの三角形内にあれば交差
+	if pointInTriangle(intersection, tri1[0], tri1[1], tri1[2]) ||
+		pointInTriangle(intersection, tri2[0], tri2[1], tri2[2]) {
+		return true
+	}
+
+	return false
 }

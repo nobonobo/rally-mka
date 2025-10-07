@@ -155,6 +155,29 @@ func (c *playScreenComponent) Render() co.Instance {
 			}))
 		}
 
+		co.WithChild("timer", co.New(widget.Timer, func() {
+			co.WithLayoutData(layout.Data{
+				Width:  opt.V(240),
+				Height: opt.V(48),
+				Top:    opt.V(0),
+				Right:  opt.V(0),
+			})
+			co.WithData(widget.TimerData{
+				Provider: c.controller,
+			})
+		}))
+		co.WithChild("laptimes", co.New(widget.LapTimes, func() {
+			co.WithLayoutData(layout.Data{
+				Width:  opt.V(240),
+				Height: opt.V(36 * 4),
+				Top:    opt.V(48),
+				Right:  opt.V(0),
+			})
+			co.WithData(widget.LapTimesData{
+				Provider: c.controller,
+			})
+		}))
+
 		co.WithChild("dashboard", co.New(std.Element, func() {
 			co.WithLayoutData(layout.Data{
 				Left:   opt.V(0),

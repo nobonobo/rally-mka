@@ -474,7 +474,7 @@ func (s *CarSystem) updateCar(elapsedSeconds float64, entity *ecs.Entity) {
 				orientation.OrientationY(),
 			)/0.16
 			latForce := CalculateLateralForceFromStrokeDiff(l, r)
-			torque := -s.torque(CalculateSelfAligningTorque2(latForce))
+			torque := -s.torque(CalculateSelfAligningTorque(latForce))
 			s.ffbForce = dprec.Clamp(torque/20, -1, 1)
 			load := (l + r) / 2
 			s.ffbForce += 0.5 * load * (angle - s.lastSteerAngle).Radians() / elapsedSeconds
@@ -540,7 +540,7 @@ func CalculateLateralForceFromStrokeDiff(
 }
 
 // CalculateSelfAligningTorque: セルフアライニングトルク計算関数
-func CalculateSelfAligningTorque2(lateralForce float64) float64 {
+func CalculateSelfAligningTorque(lateralForce float64) float64 {
 	const (
 		casterAngle     = 15.0 * math.Pi / 180.0 // キャスター角 15度
 		mechanicalTrail = 0.05                   // キャスタートレール[m]

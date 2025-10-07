@@ -540,41 +540,6 @@ func CalculateLateralForceFromStrokeDiff(
 }
 
 // CalculateSelfAligningTorque: セルフアライニングトルク計算関数
-func CalculateSelfAligningTorque(
-	suspensionCompression float64, //サスの0~1の沈み具合
-	dirA dprec.Vec3, //タイヤ向き単位ベクトル (Vec3)
-	velocityB dprec.Vec3, // 実際の進行速度ベクトル (Vec3)
-	averager func(float64) float64,
-) float64 {
-	const (
-		casterAngle       = 15.0 * math.Pi / 180.0 // キャスター角 15度
-		tireRadius        = 0.3                    // タイヤ半径0.3m
-		lateralForceCoeff = 1000.0                 // 横力をスリップ角から計算する係数（仮定）
-		mechanicalTrail   = 0.05                   // キャスタートレール[m]
-		pneumaticTrail    = 0.1                    // ニューマチックトレール[m]
-	)
-
-	// 進行速度の大きさと単位ベクトル
-	speed := velocityB.Length()
-	if speed < 1e-6 {
-		return 0 // 静止時はトルクなし
-	}
-	velDir := velocityB
-
-	// スリップ角のサイン成分（ベクトルAに対する速度ベクトルの角度差）
-	slipSin := dirA.X*velDir.Z - dirA.Z*velDir.X // 2Dの外積のz成分に相当
-
-	// おおよその横力 Fy をスリップ角のサインに比例として計算（仮）
-	lateralForce := averager(lateralForceCoeff * slipSin * suspensionCompression * speed)
-
-	// セルフアライニングトルク T を計算
-	trailSum := mechanicalTrail + pneumaticTrail
-	torque := trailSum * math.Cos(casterAngle) * lateralForce
-
-	return torque
-}
-
-// CalculateSelfAligningTorque: セルフアライニングトルク計算関数
 func CalculateSelfAligningTorque2(lateralForce float64) float64 {
 	const (
 		casterAngle     = 15.0 * math.Pi / 180.0 // キャスター角 15度

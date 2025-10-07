@@ -59,23 +59,21 @@ func (c *homeScreenComponent) OnCreate() {
 	mvc.UseBinding(c.Scope(), c.homeModel, func(ch mvc.Change) bool {
 		return mvc.IsChange(ch, model.HomeChange)
 	})
-
+	first := false
 	c.scene = c.homeModel.Scene()
 	if c.scene == nil {
+		first = true
 		c.scene = c.createScene()
 		c.homeModel.SetScene(c.scene)
 		c.onDayClicked()
 	}
-	c.engine.SetActiveScene(c.scene.Scene)
 	go func() {
-		obj := jsapp.GetGamepad()
-		log.Info("Gamepad: %v", obj)
-		if !obj.IsNull() {
+		if !first {
 			c.onPlayClicked()
-			c.onGamepadClicked()
 			c.onStartClicked()
 		}
 	}()
+	c.engine.SetActiveScene(c.scene.Scene)
 }
 
 func (c *homeScreenComponent) OnDelete() {
@@ -85,9 +83,6 @@ func (c *homeScreenComponent) OnDelete() {
 func (c *homeScreenComponent) Render() co.Instance {
 	controller := c.homeModel.Controller()
 	environment := c.homeModel.Environment()
-	if c.homeModel.Controller() != data.ControllerGamepad {
-		c.onGamepadClicked()
-	}
 	return co.New(std.Element, func() {
 		co.WithData(std.ElementData{
 			Layout: layout.Anchor(),
@@ -572,6 +567,9 @@ func (c *homeScreenComponent) onBackClicked() {
 func (c *homeScreenComponent) onPlayClicked() {
 	c.showOptions = true
 	c.Invalidate()
+	if c.homeModel.Controller() != data.ControllerGamepad {
+		c.onGamepadClicked()
+	}
 }
 
 func (c *homeScreenComponent) onLicensesClicked() {

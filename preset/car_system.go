@@ -16,7 +16,7 @@ import (
 const (
 	idleRPM   = 800.0  // アイドリング回転数
 	maxRPM    = 6000.0 // 最大回転数
-	respSpeed = 3000.0 // 回転数変化の速度（RPM/秒）
+	respSpeed = 4000.0 // 回転数変化の速度（RPM/秒）
 )
 
 func NewCarSystem(ecsScene *ecs.Scene, gfxScene *graphics.Scene, gamepadProvider GamepadProvider, carDefinition *CarDefinition) *CarSystem {
@@ -33,10 +33,10 @@ func NewCarSystem(ecsScene *ecs.Scene, gfxScene *graphics.Scene, gamepadProvider
 		elapsedTime:     0,
 		splitLines: [][4]dprec.Vec3{
 			{
-				dprec.NewVec3(7.678688844606005, 5.3376550994875842, 3.889746297714098),
-				dprec.NewVec3(-7.638771842437261, 5.3156348841287753, 4.026980239168764),
-				dprec.NewVec3(-7.638771842437261, -5.3156348841287753, 4.026980239168764),
-				dprec.NewVec3(7.678688844606005, -5.3376550994875842, 3.889746297714098),
+				dprec.NewVec3(24.69046926066537, 5.4887513475746297, 61.71666758344939),
+				dprec.NewVec3(42.55562246658897, 5.048854679277427, 41.151457281109785),
+				dprec.NewVec3(42.55562246658897, -5.048854679277427, 41.151457281109785),
+				dprec.NewVec3(24.69046926066537, -5.4887513475746297, 61.71666758344939),
 			},
 			{
 				dprec.NewVec3(11.930501270735551, 5.1859254297959396, -98.31307443752078),
@@ -556,7 +556,7 @@ func MovingAverage(windowSize int) func(float64) float64 {
 			values = append(values, newVal)
 			sum += newVal
 			if len(values) < windowSize {
-				// まだ6点集まっていないので平均は計算せず0を返すなど適宜調整
+				// まだ集まっていないので平均は計算せず0を返す
 				return 0
 			}
 			return sum / float64(windowSize)
@@ -580,17 +580,19 @@ func CalculateLateralForceFromStrokeDiff(
 	rightStroke float64,
 ) float64 {
 	const (
-		rollStiffness = 100
-		tread         = 1.5
-		cgHeight      = 1.0
+		rollStiffness  = 100
+		pitchStiffness = 5
+		tread          = 1.5
+		cgHeight       = 1.0
 	)
 	// ストローク差から荷重移動量を計算
 	strokeDiff := rightStroke - leftStroke
 	deltaWeight := strokeDiff * rollStiffness
+	weight := (rightStroke + leftStroke) / 2 * pitchStiffness
 
 	// 横力 F_y を算出（重心高とトレッド幅から静力学的に換算）
 	// F_y = 荷重移動量 * トレッド / (2 * 重心高)
-	lateralForce := deltaWeight * tread / (2.0 * cgHeight)
+	lateralForce := weight * deltaWeight * tread / (2.0 * cgHeight)
 
 	return lateralForce
 }

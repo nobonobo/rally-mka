@@ -35,6 +35,8 @@ jobs:
           go-version: ">=1.25.0"
       - name: Setup Task
         run: sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Build Assets
         run: cat resources/levels/forest-night.json
       - name: Build Assets
@@ -43,8 +45,6 @@ jobs:
         run: task wasm
       - name: Build Assets
         run: task webpack
-      - name: Checkout
-        uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

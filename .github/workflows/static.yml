@@ -39,6 +39,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
+          submodules: recursive
       - name: Build Assets
         run: cat resources/levels/forest-night.json
       - name: Build Assets

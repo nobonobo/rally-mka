@@ -45,12 +45,13 @@ jobs:
         env:
           TAGS: "dfp"
       - name: Clone for dfp
-        run: mkdir ./assets/dfp && \
-          cp -r ./assets/content ./assets/dfp/content && \
-          cp -r ./assets/web ./assets/dfp/web && \
-          cp -r ./assets/preview ./assets/dfp/preview && \
-          cp -r ./assets/index.html ./assets/dfp/index.html && \
-          cp -r ./assets/resources.yml ./assets/dfp/resources.yml
+        run: |
+          mkdir ./assets/dfp
+          cp -r ./assets/content ./assets/dfp/content
+          cp -r ./assets/web ./assets/dfp/web
+          cp -r ./assets/preview ./assets/dfp/preview
+          cp ./assets/index.html ./assets/dfp/index.html
+          cp ./assets/resources.yml ./assets/dfp/resources.yml
       - name: Build Assets fot diy
         run: task wasm
       - name: Setup Pages

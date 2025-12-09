@@ -437,15 +437,21 @@ func (s *CarSystem) updateCar(elapsedSeconds float64, entity *ecs.Entity) {
 			dprec.Vec3Prod(rightWheelBody.Orientation().OrientationX(), deltaVelocity-rightWheelBody.Velocity().Z*0.01),
 		))
 
+		deceleration := carComp.Deceleration
+		if carComp.Gear == CarGearForward {
+			deceleration += chassisBody.Velocity().Length() / 50
+		} else {
+			deceleration -= chassisBody.Velocity().Length() / 50
+		}
 		// Braking
-		if carComp.Deceleration > 0.0 {
+		if deceleration > 0.0 {
 			// TODO: Implement ABS
 
 			leftWheelVelocity := dprec.Vec3Dot(
 				leftWheelBody.AngularVelocity(),
 				leftWheelBody.Orientation().OrientationX(),
 			)
-			leftWheelCorrection := -dprec.Min(axis.maxBraking*carComp.Deceleration*elapsedSeconds, leftWheelVelocity)
+			leftWheelCorrection := -dprec.Min(axis.maxBraking*deceleration*elapsedSeconds, leftWheelVelocity)
 			leftWheelBody.SetAngularVelocity(dprec.Vec3Sum(
 				leftWheelBody.AngularVelocity(),
 				dprec.Vec3Prod(leftWheelBody.Orientation().OrientationX(), leftWheelCorrection),
@@ -455,7 +461,7 @@ func (s *CarSystem) updateCar(elapsedSeconds float64, entity *ecs.Entity) {
 				rightWheelBody.AngularVelocity(),
 				rightWheelBody.Orientation().OrientationX(),
 			)
-			rightWheelCorrection := -dprec.Min(axis.maxBraking*carComp.Deceleration*elapsedSeconds, rightWheelVelocity)
+			rightWheelCorrection := -dprec.Min(axis.maxBraking*deceleration*elapsedSeconds, rightWheelVelocity)
 			rightWheelBody.SetAngularVelocity(dprec.Vec3Sum(
 				rightWheelBody.AngularVelocity(),
 				dprec.Vec3Prod(rightWheelBody.Orientation().OrientationX(), rightWheelCorrection),

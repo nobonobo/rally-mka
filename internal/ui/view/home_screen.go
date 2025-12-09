@@ -24,6 +24,7 @@ import (
 )
 
 var HomeScreen = mvc.Wrap(co.Define(&homeScreenComponent{}))
+var gamepad bool
 
 type HomeScreenData struct {
 	Loading *model.Loading
@@ -59,21 +60,20 @@ func (c *homeScreenComponent) OnCreate() {
 	mvc.UseBinding(c.Scope(), c.homeModel, func(ch mvc.Change) bool {
 		return mvc.IsChange(ch, model.HomeChange)
 	})
-	first := false
 	c.scene = c.homeModel.Scene()
 	if c.scene == nil {
-		first = true
 		c.scene = c.createScene()
 		c.homeModel.SetScene(c.scene)
 		c.onDayClicked()
 	}
+	c.engine.SetActiveScene(c.scene.Scene)
 	go func() {
-		if !first {
+		if gamepad {
 			c.onPlayClicked()
+			c.onGamepadClicked()
 			c.onStartClicked()
 		}
 	}()
-	c.engine.SetActiveScene(c.scene.Scene)
 }
 
 func (c *homeScreenComponent) OnDelete() {
@@ -517,7 +517,10 @@ func (c *homeScreenComponent) onMouseClicked() {
 }
 
 func (c *homeScreenComponent) onGamepadClicked() {
-	go jsapp.GamepadConnect()
+	go func() {
+		jsapp.GamepadConnect()
+		gamepad = true
+	}()
 	c.homeModel.SetController(data.ControllerGamepad)
 }
 

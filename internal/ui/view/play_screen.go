@@ -2,7 +2,6 @@ package view
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/mokiat/gog/opt"
@@ -95,13 +94,6 @@ func (c *playScreenComponent) OnMouseEvent(element *ui.Element, event ui.MouseEv
 
 func (c *playScreenComponent) OnKeyboardEvent(element *ui.Element, event ui.KeyboardEvent) bool {
 	switch event.Code {
-	case ui.KeyCodeR:
-		if event.Type == ui.KeyboardEventTypeKeyDown {
-			log.Println("KeyDown: R key")
-			mvc.Dispatch(c.Scope(), action.ChangeView{
-				ViewName: model.ViewNameHome,
-			})
-		}
 	case ui.KeyCodeEscape:
 		if event.Type == ui.KeyboardEventTypeKeyUp {
 			c.controller.Pause()
@@ -126,6 +118,13 @@ func (c *playScreenComponent) OnKeyboardEvent(element *ui.Element, event ui.Keyb
 			c.controller.ToggleCamera()
 		}
 		return true
+	case ui.KeyCodeR:
+		if event.Type == ui.KeyboardEventTypeKeyDown {
+			mvc.Dispatch(c.Scope(), action.ChangeView{
+				ViewName: model.ViewNameHome,
+			})
+			return true
+		}
 	default:
 		return c.controller.OnKeyboardEvent(event)
 	}

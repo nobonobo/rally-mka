@@ -372,9 +372,9 @@ func (c *PlayController) createVehicleDefinition() *preset.CarDefinition {
 		WithLeftHubDefinition(frontLeftHubDef).
 		WithRightHubDefinition(frontRightHubDef).
 		WithMaxSteeringAngle(dprec.Degrees(45)).
-		WithMaxAcceleration(145).
-		WithMaxBraking(250).
-		WithReverseRatio(0.5)
+		WithMaxAcceleration(200).
+		WithMaxBraking(300).
+		WithReverseRatio(1.0)
 
 	rearAxisDef := preset.NewAxisDefinition().
 		WithPosition(dprec.NewVec3(0.0, -0.18, -1.37)).
@@ -388,9 +388,9 @@ func (c *PlayController) createVehicleDefinition() *preset.CarDefinition {
 		WithLeftHubDefinition(rearLeftHubDef).
 		WithRightHubDefinition(rearRightHubDef).
 		WithMaxSteeringAngle(dprec.Degrees(0)).
-		WithMaxAcceleration(145).
-		WithMaxBraking(180).
-		WithReverseRatio(0.5)
+		WithMaxAcceleration(200).
+		WithMaxBraking(230).
+		WithReverseRatio(1.0)
 
 	carDef := preset.NewCarDefinition().
 		WithChassisDefinition(chassisDef).

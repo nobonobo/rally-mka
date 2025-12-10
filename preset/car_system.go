@@ -439,9 +439,7 @@ func (s *CarSystem) updateCar(elapsedSeconds float64, entity *ecs.Entity) {
 
 		deceleration := carComp.Deceleration
 		if carComp.Gear == CarGearForward {
-			deceleration += chassisBody.Velocity().Length() / 50
-		} else {
-			deceleration -= chassisBody.Velocity().Length() / 50
+			deceleration += chassisBody.Velocity().Length() * 0.015
 		}
 		// Braking
 		if deceleration > 0.0 {

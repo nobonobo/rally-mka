@@ -390,7 +390,7 @@ func (c *PlayController) createVehicleDefinition() *preset.CarDefinition {
 		WithMaxSteeringAngle(dprec.Degrees(0)).
 		WithMaxAcceleration(200).
 		WithMaxBraking(230).
-		WithReverseRatio(1.0)
+		WithReverseRatio(0.8)
 
 	carDef := preset.NewCarDefinition().
 		WithChassisDefinition(chassisDef).

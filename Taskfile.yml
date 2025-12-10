@@ -1,5 +1,6 @@
 version: "3"
-env:
+
+vars:
   TAGS: "diy"
 
 tasks:
@@ -37,7 +38,7 @@ tasks:
       GOOS: js
       GOARCH: wasm
     cmds:
-      - go build -tags ${TAGS} -o './assets/web/main.wasm' './cmd/rallymka'
+      - go build -tags "{{.TAGS}}" -o './assets/web/main.wasm' './cmd/rallymka'
 
   web:
     cmds:

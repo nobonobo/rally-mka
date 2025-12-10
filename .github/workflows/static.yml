@@ -41,9 +41,7 @@ jobs:
           lfs: true
           submodules: recursive
       - name: Build Assets fot dfp
-        run: task assets wasm webpack
-        env:
-          TAGS: "dfp"
+        run: task assets wasm webpack TAGS="dfp"
       - name: Clone for dfp
         run: |
           mkdir ./assets/dfp
@@ -63,7 +61,7 @@ jobs:
           cp ./assets/index.html ./assets/normal/index.html
           cp ./assets/resources.yml ./assets/normal/resources.yml
       - name: Build Assets fot diy
-        run: task wasm
+        run: task wasm TAGS="diy"
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

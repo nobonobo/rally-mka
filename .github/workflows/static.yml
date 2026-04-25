@@ -40,7 +40,7 @@ jobs:
         with:
           lfs: true
           submodules: recursive
-      - name: Build Assets fot dfp
+      - name: Build Assets for dfp
         run: task assets wasm webpack TAGS="dfp"
       - name: Clone for dfp
         run: |
@@ -50,7 +50,17 @@ jobs:
           cp -r ./assets/preview ./assets/dfp/preview
           cp ./assets/index.html ./assets/dfp/index.html
           cp ./assets/resources.yml ./assets/dfp/resources.yml
-      - name: Build Assets fot normal
+      - name: Build Assets for roller
+        run: task assets wasm webpack TAGS="roller"
+      - name: Clone for roller
+        run: |
+          mkdir ./assets/roller
+          cp -r ./assets/content ./assets/roller/content
+          cp -r ./assets/web ./assets/roller/web
+          cp -r ./assets/preview ./assets/roller/preview
+          cp ./assets/index.html ./assets/roller/index.html
+          cp ./assets/resources.yml ./assets/roller/resources.yml
+      - name: Build Assets for normal
         run: task wasm TAGS=""
       - name: Clone for normal
         run: |
@@ -60,7 +70,7 @@ jobs:
           cp -r ./assets/preview ./assets/normal/preview
           cp ./assets/index.html ./assets/normal/index.html
           cp ./assets/resources.yml ./assets/normal/resources.yml
-      - name: Build Assets fot diy
+      - name: Build Assets for diy
         run: task wasm TAGS="diy"
       - name: Setup Pages
         uses: actions/configure-pages@v5

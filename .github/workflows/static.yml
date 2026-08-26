@@ -1,84 +1,110 @@
-# Simple workflow for deploying static content to GitHub Pages
 name: Deploy static content to Pages
 
 on:
-  # Runs on pushes targeting the default branch
   push:
-    branches: ["add-support-ffb-wheel"]
+    branches:
+      - add-support-ffb-wheel
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
-  group: "pages"
+  group: github-pages
   cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just deploying
   deploy:
+    runs-on: ubuntu-latest
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+
     steps:
-      - name: Setup Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: ">=1.25.0"
-      - name: Setup Task
-        run: sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           lfs: true
           submodules: recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.25.x"
+          check-latest: true
+
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      #
+      # dfp
+      #
       - name: Build Assets for dfp
         run: task assets wasm webpack TAGS="dfp"
-      - name: Clone for dfp
+
+      - name: Clone Assets for dfp
         run: |
-          mkdir ./assets/dfp
-          cp -r ./assets/content ./assets/dfp/content
-          cp -r ./assets/web ./assets/dfp/web
-          cp -r ./assets/preview ./assets/dfp/preview
-          cp ./assets/index.html ./assets/dfp/index.html
-          cp ./assets/resources.yml ./assets/dfp/resources.yml
+          mkdir -p assets/dfp
+          cp -a assets/content assets/dfp/
+          cp -a assets/web assets/dfp/
+          cp -a assets/preview assets/dfp/
+          cp -a assets/index.html assets/dfp/
+          cp -a assets/resources.yml assets/dfp/
+
+      #
+      # roller
+      #
       - name: Build Assets for roller
         run: task assets wasm webpack TAGS="roller"
-      - name: Clone for roller
+
+      - name: Clone Assets for roller
         run: |
-          mkdir ./assets/roller
-          cp -r ./assets/content ./assets/roller/content
-          cp -r ./assets/web ./assets/roller/web
-          cp -r ./assets/preview ./assets/roller/preview
-          cp ./assets/index.html ./assets/roller/index.html
-          cp ./assets/resources.yml ./assets/roller/resources.yml
+          mkdir -p assets/roller
+          cp -a assets/content assets/roller/
+          cp -a assets/web assets/roller/
+          cp -a assets/preview assets/roller/
+          cp -a assets/index.html assets/roller/
+          cp -a assets/resources.yml assets/roller/
+
+      #
+      # normal
+      #
       - name: Build Assets for normal
-        run: task wasm TAGS=""
-      - name: Clone for normal
+        run: task assets wasm webpack TAGS=""
+
+      - name: Clone Assets for normal
         run: |
-          mkdir ./assets/normal
-          cp -r ./assets/content ./assets/normal/content
-          cp -r ./assets/web ./assets/normal/web
-          cp -r ./assets/preview ./assets/normal/preview
-          cp ./assets/index.html ./assets/normal/index.html
-          cp ./assets/resources.yml ./assets/normal/resources.yml
+          mkdir -p assets/normal
+          cp -a assets/content assets/normal/
+          cp -a assets/web assets/normal/
+          cp -a assets/preview assets/normal/
+          cp -a assets/index.html assets/normal/
+          cp -a assets/resources.yml assets/normal/
+
+      #
+      # diy
+      #
       - name: Build Assets for diy
-        run: task wasm TAGS="diy"
+        run: task assets wasm webpack TAGS="diy"
+
+      #
+      # GitHub Pages
+      #
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
-          # Upload entire repository
-          path: "./assets"
+          path: ./assets
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

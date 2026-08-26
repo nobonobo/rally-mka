@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	log.Info("Started")
+	log.Info("Started: roller")
 	if err := runApplication(); err != nil {
 		log.Error("Crashed: %v", err)
 		os.Exit(1)

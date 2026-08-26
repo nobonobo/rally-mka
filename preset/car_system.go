@@ -545,7 +545,7 @@ func (s *CarSystem) updateCar(elapsedSeconds float64, entity *ecs.Entity) {
 				s.splitIndex = (s.splitIndex + 1) % len(s.splitLines)
 			}
 			if cnt%60 == 0 {
-				log.Info("v: %v: %v", chassisBody.Position(), start)
+				log.Info("v: %v, %.1f", chassisBody.Position(), s.ffbForce)
 			}
 		}
 	}

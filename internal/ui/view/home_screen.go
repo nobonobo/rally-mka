@@ -19,6 +19,7 @@ import (
 	"github.com/mokiat/rally-mka/internal/ui/model"
 	"github.com/mokiat/rally-mka/internal/ui/widget"
 	"github.com/x448/float16"
+	"github.com/mokiat/rally-mka/preset"
 
 	jsapp "github.com/mokiat/lacking-js/app"
 )
@@ -551,6 +552,8 @@ func (c *homeScreenComponent) onNightClicked() {
 }
 
 func (c *homeScreenComponent) onStartClicked() {
+	// Initialise audio system before starting the game
+	preset.InitAudio()
 	promise := data.LoadPlayData(c.engine, c.resourceSet, c.homeModel.Environment(), c.homeModel.Controller())
 	c.playModel.SetData(promise)
 

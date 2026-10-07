@@ -190,6 +190,7 @@ func (s *CarSystem) updateRPM(throttle, elapsedSeconds float64) {
 	if s.rpm < idleRPM {
 		s.rpm = idleRPM
 	}
+	playEngine(s.rpm)
 }
 
 func (s *CarSystem) updateKeyboard(elapsedSeconds float64, entity *ecs.Entity) {

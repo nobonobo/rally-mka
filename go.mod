@@ -1,8 +1,6 @@
 module github.com/mokiat/rally-mka
 
-go 1.21
-
-toolchain go1.21.1
+go 1.26
 
 require (
 	github.com/mokiat/gblob v0.2.1
@@ -23,6 +21,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mdouchement/hdr v0.2.4 // indirect
 	github.com/mokiat/goexr v0.1.0 // indirect
+	github.com/mokiat/wasmal v0.3.0 // indirect
 	github.com/mokiat/wasmgl v0.5.0 // indirect
 	github.com/qmuntal/gltf v0.24.1 // indirect
 	golang.org/x/image v0.9.0 // indirect
